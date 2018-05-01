@@ -1,5 +1,5 @@
 import {takeLatest, put, call} from 'redux-saga/effects'
-import {prop, propOr, map} from 'ramda'
+import {map} from 'ramda'
 import * as actions from './actions'
 import * as api from './api'
 
@@ -17,13 +17,13 @@ const format = candidate => ({
 })
 
 function* watch(action) {
-  const candidate = prop('candidate', action.payload)
+  const {candidate} =  action.payload
   try {
-    const {response} = yield call(
+    const {data} = yield call(
       api.fetchTweets,
       candidate
     )
-    const tweets = map(format(candidate), response.statuses)
+    const tweets = map(format(candidate), data.statuses)
     yield put(actions.success(candidate, tweets))
   } catch (error) {
     yield put(actions.failure(candidate, error))

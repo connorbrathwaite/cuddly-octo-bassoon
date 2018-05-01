@@ -7,33 +7,36 @@ import {
   renderComponent
 } from 'recompose'
 import {prop, propEq, filter} from 'ramda'
-import {List as AList, Spin} from 'antd'
+import {List as AList, Alert} from 'antd'
 import {request} from '../store/tweet/actions'
 
 const List = ({
-  hasError,
+  tweets,
   header,
-  currentCandidate,
-  tweets
-}) =>  (
-    <AList
-      bordered
-      header={header}
-      dataSource={filter(
-        propEq('candidate', currentCandidate)
-      )(tweets)}
-      renderItem={item => (
-        <AList.Item extra={item.createdAt}>
-          <AList.Item.Meta
-            title={
-              <a href="https://ant.design">{item.author}</a>
-            }
-            description={item.text}
-          />
-        </AList.Item>
-      )}
-    />
-  )
+  isLoading,
+  currentCandidate
+}) => (
+  <AList
+    bordered
+    header={header}
+    loading={isLoading}
+    dataSource={filter(
+      propEq('candidate', currentCandidate)
+    )(tweets)}
+    renderItem={item => (
+      <AList.Item extra={item.createdAt}>
+        <AList.Item.Meta
+          title={<a href="#">{item.author}</a>}
+          description={item.text}
+        />
+      </AList.Item>
+    )}
+  />
+)
+
+const Err = ({hasError}) => (
+  <Alert message={hasError} type="error" />
+)
 
 const mapState = prop('tweet')
 
@@ -50,5 +53,5 @@ export default compose(
         : null
     }
   }),
-  branch(prop('isLoading'), renderComponent(Spin))
+  branch(prop('hasError'), renderComponent(Err))
 )(List)

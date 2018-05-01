@@ -1,7 +1,6 @@
 require('dotenv').config()
-const fastify = require('fastify')()
-const helmet = require('fastify-helmet')
 const Twit = require('twit')
+const fastify = require('fastify')()
 
 const twit = new Twit({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
@@ -11,16 +10,16 @@ const twit = new Twit({
   timeout_ms: 60 * 1000
 })
 
-fastify.register(helmet)
+fastify.use(require('cors')())
 
 fastify.get('/', (request, reply) =>
   twit
     .get('search/tweets', {...request.query, count: 10})
-    .then(tweets =>
+    .then(data =>
       reply
         .code(200)
         .header('Content-Type', 'application/json')
-        .send({tweets})
+        .send(data)
     )
     .catch(err =>
       reply
