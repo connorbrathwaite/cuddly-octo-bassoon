@@ -52,7 +52,7 @@ export default compose(
       } = this.props
 
       const evtSource = new EventSource(
-        `http://localhost:3000/live?q=${currentCandidate}`
+        `http://localhost:3000/live?track=${currentCandidate}`
       )
 
       const handleTweetEvent = pipe(

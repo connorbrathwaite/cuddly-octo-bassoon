@@ -10,6 +10,8 @@ import {message} from 'antd'
 import * as actions from './actions'
 import * as api from './api'
 
+message.config({maxCount: 3})
+
 const format = candidate => ({
   id,
   text,
@@ -42,6 +44,7 @@ function* watchAdds(action) {
   yield put(
     actions.add(candidate, format(candidate)(tweet))
   )
+
   message.info(tweet.text)
 }
 
