@@ -19,14 +19,14 @@ const format = candidate => ({
 function* watch(action) {
   const {candidate} =  action.payload
   try {
-    const {data} = yield call(
+    const data = yield call(
       api.fetchTweets,
       candidate
     )
-    const tweets = map(format(candidate), data.statuses)
+    const tweets = map(format(candidate), data)
     yield put(actions.success(candidate, tweets))
   } catch (error) {
-    yield put(actions.failure(candidate, error))
+    yield put(actions.failure(candidate, error.message))
   }
 }
 export default function* rootSaga() {
