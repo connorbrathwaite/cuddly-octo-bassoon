@@ -1,5 +1,12 @@
-import {takeLatest, put, call} from 'redux-saga/effects'
-import {map} from 'ramda'
+import {
+  takeLatest,
+  takeEvery,
+  take,
+  put,
+  call
+} from 'redux-saga/effects'
+import {map, pipe, prop} from 'ramda'
+import {message} from 'antd'
 import * as actions from './actions'
 import * as api from './api'
 
@@ -16,19 +23,31 @@ const format = candidate => ({
   createdAt: created_at
 })
 
-function* watch(action) {
-  const {candidate} =  action.payload
+function* watchLoads(action) {
+  const {candidate} = action.payload
+
   try {
-    const data = yield call(
-      api.fetchTweets,
-      candidate
-    )
+    const data = yield call(api.fetchTweets, candidate)
     const tweets = map(format(candidate), data)
     yield put(actions.success(candidate, tweets))
   } catch (error) {
     yield put(actions.failure(candidate, error.message))
   }
 }
-export default function* rootSaga() {
-  yield takeLatest(actions.REQUEST_TWEETS, watch)
+
+function* watchAdds(action) {
+  const {
+    payload: {candidate, tweet}
+  } = yield take(actions.REQUEST_ADD_TWEET)
+  yield put(
+    actions.add(candidate, format(candidate)(tweet))
+  )
+  message.info(tweet.text)
+}
+
+export default function* root() {
+  yield [
+    takeLatest(actions.REQUEST_TWEETS, watchLoads),
+    takeEvery(actions.REQUEST_ADD_TWEET, watchAdds)
+  ]
 }

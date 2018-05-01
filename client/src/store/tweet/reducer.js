@@ -4,6 +4,7 @@ import {
   equals,
   always,
   evolve,
+  prepend,
   union,
   T,
   F
@@ -11,6 +12,7 @@ import {
 import * as actions from './actions'
 
 const initialState = {
+  isNotifing: F(),
   isLoading: F(),
   hasError: F(),
   tweets: []
@@ -18,6 +20,21 @@ const initialState = {
 
 const reducer = (state = initialState, action) =>
   cond([
+    [
+      equals(actions.REQUEST_ADD_TWEET),
+      () =>
+        evolve({
+          isNotifing: T
+        })(state)
+    ],
+    [
+      equals(actions.SUCCESS_ADD_TWEET),
+      () =>
+        evolve({
+          isNotifing: F,
+          tweets: prepend(action.payload.tweet)
+        })(state)
+    ],
     [
       equals(actions.REQUEST_TWEETS),
       () =>
