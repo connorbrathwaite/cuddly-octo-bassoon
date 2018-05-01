@@ -12,6 +12,24 @@ const twit = new Twit({
 
 fastify.use(require('cors')())
 
+fastify.get('/live', (request, reply) => {
+  const event = 'event: tweet'
+  const id = `id: ${Date.now()}`
+  const sampleData = {
+    user: {screen_name: 'asdas'},
+    id: 1,
+    text: 'asadlol' + request.query.q
+  }
+  const data = 'data: ' + JSON.stringify(sampleData)
+
+  reply
+    .code(200)
+    .type('text/event-stream')
+    .header('Connection', 'keep-alive')
+    .header('Cache-Control', 'no-cache')
+    .send(`${event}\n${id}\n${data}\n\n`)
+})
+
 fastify.get('/', (request, reply) =>
   twit
     .get('search/tweets', {...request.query, count: 10})
