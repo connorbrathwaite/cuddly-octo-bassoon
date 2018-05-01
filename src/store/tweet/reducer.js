@@ -1,29 +1,46 @@
 import {
   cond,
+  path,
   equals,
   always,
   evolve,
-  prepend,
+  union,
   T,
   F
 } from 'ramda'
 import * as actions from './actions'
 
 const initialState = {
-  loading: false,
-  error: false,
+  isLoading: F(),
+  hasError: F(),
   tweets: []
 }
 
 const reducer = (state = initialState, action) =>
   cond([
-    [equals(actions.request), always({loading: T()})],
     [
-      equals(actions.success),
+      equals(actions.REQUEST_TWEETS),
       () =>
         evolve({
-          loading: F(),
-          tweets: prepend(action.payload.tweets)
+          isLoading: T,
+          hasError: F
+        })(state)
+    ],
+    [
+      equals(actions.SUCCESS_TWEETS),
+      () =>
+        evolve({
+          isLoading: F,
+          hasError: F,
+          tweets: union(action.payload.tweets)
+        })(state)
+    ],
+    [
+      equals(actions.FAILURE_TWEETS),
+      () =>
+        evolve({
+          isLoading: F,
+          hasError: T
         })(state)
     ],
     [T, always(state)]

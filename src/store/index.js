@@ -6,21 +6,26 @@ import {
 import {createLogger} from 'redux-logger'
 import createSagaMiddleware from 'redux-saga'
 import tweetReducer from './tweet/reducer'
+import rootSaga from './tweet/sagas'
 
-const loggerMiddleware = createLogger({
-  collapsed: false,
-  duration: true
-})
+export default () => {
+  const rootReducer = combineReducers({
+    tweet: tweetReducer
+  })
 
-const sagaMiddleware = createSagaMiddleware()
+  const loggerMiddleware = createLogger({
+    collapsed: false,
+    duration: true
+  })
 
-const combinedReducers = combineReducers({
-  tweet: tweetReducer
-})
+  const sagaMiddleware = createSagaMiddleware()
 
-const store = createStore(
-  combinedReducers,
-  applyMiddleware(loggerMiddleware, sagaMiddleware)
-)
+  const store = createStore(
+    rootReducer,
+    applyMiddleware(loggerMiddleware, sagaMiddleware)
+  )
 
-export default store
+  store.runSaga = sagaMiddleware.run(rootSaga)
+
+  return store
+}
