@@ -5,6 +5,7 @@ import {
   compose,
   lifecycle,
   withStateHandlers,
+  withProps,
   renderComponent
 } from 'recompose'
 import {
@@ -14,43 +15,70 @@ import {
   filter,
   evolve,
   not,
-  F
+  F,
+  T
 } from 'ramda'
 import {List as AList, Alert, Button} from 'antd'
 import Err from '../components/Err'
 import {requestAdd, request} from '../store/tweet/actions'
 
 const List = ({
-  Header,
-  tweets,
+  filteredTweets,
   isLive,
   isLoading,
   toggleLive,
-  currentCandidate
-}) => (
-  <AList
-    bordered
-    loading={isLoading}
-    header={
-      <Header>
-        <Button type="secondairy" onClick={toggleLive}>
-          Live {isLive ? 'Off' : 'On'}
-        </Button>
-      </Header>
-    }
-    dataSource={filter(
-      propEq('candidate', currentCandidate)
-    )(tweets)}
-    renderItem={item => (
-      <AList.Item extra={item.createdAt}>
-        <AList.Item.Meta
-          title={<a href="#">{item.author}</a>}
-          description={item.text}
-        />
-      </AList.Item>
-    )}
-  />
-)
+  otherCandidate,
+  currentCandidate,
+  toggleCandidate
+}) => {
+
+  // lib not working atm
+  // const pagination = {
+  //   pageSize: 5,
+  //   defaultCurrent: 1,
+  //   total: filteredTweets.length,
+  //   showTotal: total => `${total} tweets`
+  // }
+
+  const renderItem = item => (
+    <AList.Item extra={item.createdAt}>
+      <AList.Item.Meta
+        title={<a href="#">{item.author}</a>}
+        description={item.text}
+      />
+    </AList.Item>
+  )
+
+  const listProps = {
+    renderItem,
+    bordered: T(),
+    loading: isLoading,
+    dataSource: filteredTweets,
+    header: (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between'
+        }}
+      >
+        <h1>
+          {filteredTweets.length} tweets for{' '}
+          {currentCandidate}
+        </h1>
+        <Button.Group>
+          <Button type="primary" onClick={toggleCandidate}>
+            # {otherCandidate}
+          </Button>
+          <Button type="secondairy" onClick={toggleLive}>
+            live {isLive ? 'off' : 'on'}
+          </Button>
+        </Button.Group>
+      </div>
+    )
+  }
+
+  return <AList {...listProps} />
+}
 
 const noop = () => {}
 
@@ -82,6 +110,12 @@ const stateHandlers = {
     })(state)
 }
 
+const propMapper = ({tweets, currentCandidate}) => ({
+  filteredTweets: filter(
+    propEq('candidate', currentCandidate)
+  )(tweets)
+})
+
 export default compose(
   connect(mapState, {request, requestAdd}),
   withStateHandlers(initalState, stateHandlers),
@@ -95,7 +129,7 @@ export default compose(
         isLive,
         request,
         requestAdd,
-        currentCandidate,
+        currentCandidate
       } = this.props
 
       // load all tweets when toggling candidates
@@ -108,8 +142,8 @@ export default compose(
         ? evtSource.close()
         : noop
 
-
-      const _requestAdd = tweet => requestAdd(currentCandidate, tweet)
+      const _requestAdd = tweet =>
+        requestAdd(currentCandidate, tweet)
 
       const handleTweetEvt = pipe(
         prop('data'),
@@ -117,8 +151,11 @@ export default compose(
         _requestAdd
       )
 
-      isLive ? setEvtSource(currentCandidate, handleTweetEvt) : noop
+      isLive
+        ? setEvtSource(currentCandidate, handleTweetEvt)
+        : noop
     }
   }),
+  withProps(propMapper),
   branch(prop('hasError'), renderComponent(Err))
 )(List)

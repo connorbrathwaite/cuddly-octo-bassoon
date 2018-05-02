@@ -11,22 +11,8 @@ const Tweet = ({
 }) => (
   <List
     currentCandidate={currentCandidate}
-    Header={({children}) => (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between'
-        }}
-      >
-        <h1>Tweets for {currentCandidate}</h1>
-        <Button.Group>
-          <Button type="primary" onClick={toggleCandidate}>
-            # {otherCandidate}
-          </Button>
-          {children}
-        </Button.Group>
-      </div>
-    )}
+    toggleCandidate={toggleCandidate}
+    otherCandidate={otherCandidate}
   />
 )
 
