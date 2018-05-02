@@ -57,7 +57,11 @@ const noop = () => {}
 // TODO: refactor into a saga channel...
 let evtSource = null
 
-const setEvtSource = q => handler => {
+const setEvtSource = (q, handler) => {
+  console.log('run')
+  console.log(q, handler)
+  evtSource ? evtSource.close() : noop
+
   evtSource = new EventSource(
     `http://localhost:3000/live?track=${q}`
   )
@@ -67,7 +71,9 @@ const setEvtSource = q => handler => {
 
 const mapState = prop('tweet')
 
-const initalState = {isLive: F()}
+const initalState = {
+  isLive: F()
+}
 
 const stateHandlers = {
   toggleLive: state => () =>
@@ -81,37 +87,37 @@ export default compose(
   withStateHandlers(initalState, stateHandlers),
   lifecycle({
     componentDidMount() {
-      this.props.request(this.props.currentCandidate)
+      const {request, currentCandidate} = this.props
+      request(currentCandidate)
     },
     componentDidUpdate(prevProps) {
+      const {
+        isLive,
+        request,
+        requestAdd,
+        currentCandidate,
+      } = this.props
+
+      // load all tweets when toggling candidates
+      prevProps.currentCandidate !== currentCandidate
+        ? request(currentCandidate)
+        : noop
+
       // close source when toggling live off or on candidate change
-      evtSource && prevProps.isLive && !this.props.isLive
+      prevProps.isLive && !isLive && evtSource
         ? evtSource.close()
         : noop
 
-      // load all tweets when toggling candidates
-      prevProps.currentCandidate !==
-      this.props.currentCandidate
-        ? this.props.request(this.props.currentCandidate)
-        : noop
+
+      const _requestAdd = tweet => requestAdd(currentCandidate, tweet)
 
       const handleTweetEvt = pipe(
         prop('data'),
         JSON.parse,
-        tweet =>
-          this.props.requestAdd(
-            this.props.currentCandidate,
-            tweet
-          )
+        _requestAdd
       )
 
-      const setEvtSourceToCandidate = setEvtSource(
-        this.props.currentCandidate
-      )
-
-      this.props.isLive
-        ? setEvtSourceToCandidate(handleTweetEvt)
-        : noop
+      isLive ? setEvtSource(currentCandidate, handleTweetEvt) : noop
     }
   }),
   branch(prop('hasError'), renderComponent(Err))
