@@ -38,9 +38,9 @@ function* watchLoads(action) {
 }
 
 function* watchAdds(action) {
-  const {
-    payload: {candidate, tweet}
-  } = yield take(actions.REQUEST_ADD_TWEET)
+  const {payload: {candidate, tweet}} = yield take(
+    actions.REQUEST_ADD_TWEET
+  )
 
   yield put(
     actions.add(candidate, format(candidate)(tweet))

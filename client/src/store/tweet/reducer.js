@@ -49,7 +49,7 @@ const reducer = (state = initialState, action) =>
           {
             isLoading: T,
             hasError: F,
-            errMsg: always(null),
+            errMsg: always(null)
           },
           state
         )
