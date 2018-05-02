@@ -9,6 +9,7 @@ import {
   renderComponent
 } from 'recompose'
 import {
+  always,
   pipe,
   prop,
   propEq,
@@ -22,6 +23,15 @@ import {List as AList, Alert, Button} from 'antd'
 import Err from '../components/Err'
 import {requestAdd, request} from '../store/tweet/actions'
 
+const ListItem = ({text, author, createdAt}) => (
+  <AList.Item extra={createdAt}>
+    <AList.Item.Meta
+      title={<a href="#">{author}</a>}
+      description={text}
+    />
+  </AList.Item>
+)
+
 const List = ({
   filteredTweets,
   isLive,
@@ -31,26 +41,16 @@ const List = ({
   currentCandidate,
   toggleCandidate
 }) => {
-
-  // lib not working atm
-  // const pagination = {
-  //   pageSize: 5,
-  //   defaultCurrent: 1,
-  //   total: filteredTweets.length,
-  //   showTotal: total => `${total} tweets`
-  // }
-
-  const renderItem = item => (
-    <AList.Item extra={item.createdAt}>
-      <AList.Item.Meta
-        title={<a href="#">{item.author}</a>}
-        description={item.text}
-      />
-    </AList.Item>
-  )
+  const pagination = {
+    pageSize: 5,
+    defaultCurrent: 1,
+    total: filteredTweets.length,
+    showTotal: total => `${total} tweets`
+  }
 
   const listProps = {
-    renderItem,
+    // pagination (lib not working atm),
+    renderItem: ListItem,
     bordered: T(),
     loading: isLoading,
     dataSource: filteredTweets,
@@ -85,6 +85,11 @@ const noop = () => {}
 // TODO: refactor into a saga channel...
 let evtSource = null
 
+const candidates = {
+  trump: 'trump',
+  hilary: 'hilary'
+}
+
 const setEvtSource = (q, handler) => {
   console.log('run')
   console.log(q, handler)
@@ -100,14 +105,21 @@ const setEvtSource = (q, handler) => {
 const mapState = prop('tweet')
 
 const initalState = {
-  isLive: F()
+  isLive: F(),
+  otherCandidate: prop('hilary')(candidates),
+  currentCandidate: prop('trump')(candidates)
 }
 
 const stateHandlers = {
   toggleLive: state => () =>
     evolve({
       isLive: not
-    })(state)
+    })(state),
+  toggleCandidate: prevState =>
+    always({
+      currentCandidate: prevState.otherCandidate,
+      otherCandidate: prevState.currentCandidate
+    })
 }
 
 const propMapper = ({tweets, currentCandidate}) => ({

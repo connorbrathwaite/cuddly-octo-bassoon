@@ -2,9 +2,6 @@ import React from 'react'
 import {evolve, not, T} from 'ramda'
 import {withStateHandlers} from 'recompose'
 import {Layout, Button} from 'antd'
-import './style.css'
-
-const {Header, Content, Footer} = Layout
 
 const style = {
   content: {
@@ -29,10 +26,7 @@ const BaseLayout = ({
   toggleIsAuthenticated
 }) => (
   <Layout className="layout">
-    <Header>
-      <div className="logo" />
-    </Header>
-    <Content style={style.content}>
+    <Layout.Content style={style.content}>
       <div style={style.children}>
         {isAuthenticated ? (
           children
@@ -45,20 +39,20 @@ const BaseLayout = ({
           </Button>
         )}
       </div>
-    </Content>
-    <Footer style={style.footer}>
+    </Layout.Content>
+    <Layout.Footer style={style.footer}>
       Ant Design ©2018 Created by Ant UED
-    </Footer>
+    </Layout.Footer>
   </Layout>
 )
 
-// authentication creds in `keys.json` but we can still pretend we're logging in for fun
+// authentication creds in `.env` but we can still pretend we're logging in for fun
 const initialState = {
-  isAuthenticated: T() // false
+  isAuthenticated: T()
 }
 
 const stateHandlers = {
-  toggleIsAuthenticated: prevState => () =>
+  toggleIsAuthenticated: state => () =>
     evolve({
       isAuthenticated: not
     })(prevState)
