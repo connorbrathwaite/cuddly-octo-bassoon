@@ -91,8 +91,6 @@ const candidates = {
 }
 
 const setEvtSource = (q, handler) => {
-  console.log('run')
-  console.log(q, handler)
   evtSource ? evtSource.close() : noop
 
   evtSource = new EventSource(
