@@ -1,6 +1,6 @@
 import {
   cond,
-  path,
+  prop,
   equals,
   always,
   evolve,
@@ -15,6 +15,7 @@ const initialState = {
   isNotifing: F(),
   isLoading: F(),
   hasError: F(),
+  errMsg: always(null),
   tweets: []
 }
 
@@ -23,42 +24,59 @@ const reducer = (state = initialState, action) =>
     [
       equals(actions.REQUEST_ADD_TWEET),
       () =>
-        evolve({
-          isNotifing: T
-        })(state)
+        evolve(
+          {
+            isNotifing: T
+          },
+          state
+        )
     ],
     [
       equals(actions.SUCCESS_ADD_TWEET),
       () =>
-        evolve({
-          isNotifing: F,
-          tweets: prepend(action.payload.tweet)
-        })(state)
+        evolve(
+          {
+            isNotifing: F,
+            tweets: prepend(action.payload.tweet)
+          },
+          state
+        )
     ],
     [
       equals(actions.REQUEST_TWEETS),
       () =>
-        evolve({
-          isLoading: T,
-          hasError: F
-        })(state)
+        evolve(
+          {
+            isLoading: T,
+            hasError: F,
+            errMsg: always(null),
+          },
+          state
+        )
     ],
     [
       equals(actions.SUCCESS_TWEETS),
       () =>
-        evolve({
-          isLoading: F,
-          hasError: F,
-          tweets: union(action.payload.tweets)
-        })(state)
+        evolve(
+          {
+            isLoading: F,
+            hasError: F,
+            tweets: union(action.payload.tweets)
+          },
+          state
+        )
     ],
     [
       equals(actions.FAILURE_TWEETS),
       () =>
-        evolve({
-          isLoading: F,
-          hasError: T
-        })(state)
+        evolve(
+          {
+            isLoading: F,
+            hasError: T,
+            errMsg: always(action.payload.error)
+          },
+          state
+        )
     ],
     [T, always(state)]
   ])(action.type)

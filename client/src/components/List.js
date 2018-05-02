@@ -19,7 +19,7 @@ import {
   F,
   T
 } from 'ramda'
-import {List as AList, Alert, Button} from 'antd'
+import {List as AList, Button} from 'antd'
 import Err from '../components/Err'
 import {requestAdd, request} from '../store/tweet/actions'
 
