@@ -11,3 +11,15 @@ Array [
   },
 ]
 `;
+
+exports[`tweet reducer recieve tweets 2`] = `
+Array [
+  Object {
+    "author": "JanLandy",
+    "candidate": "trump",
+    "createdAt": "Wed May 02 13:47:09 +0000 2018",
+    "id": 991675463184539600,
+    "text": "@renato_mariotti I think we have to understand that Trump is guilty, and because he’s guilty he’s going to do every… https://t.co/3eOqwlBew0",
+  },
+]
+`;
