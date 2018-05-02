@@ -4,23 +4,40 @@ import {
   branch,
   compose,
   lifecycle,
+  withStateHandlers,
   renderComponent
 } from 'recompose'
-import {pipe, prop, propEq, filter} from 'ramda'
-import {List as AList, Alert} from 'antd'
+import {
+  pipe,
+  prop,
+  propEq,
+  filter,
+  evolve,
+  not,
+  F
+} from 'ramda'
+import {List as AList, Alert, Button} from 'antd'
+import Err from '../components/Err'
 import {requestAdd, request} from '../store/tweet/actions'
 
 const List = ({
+  Header,
   tweets,
-  header,
+  isLive,
   isLoading,
-  requestAdd,
+  toggleLive,
   currentCandidate
 }) => (
   <AList
     bordered
-    header={header}
     loading={isLoading}
+    header={
+      <Header>
+        <Button type="secondairy" onClick={toggleLive}>
+          Live {isLive ? 'Off' : 'On'}
+        </Button>
+      </Header>
+    }
     dataSource={filter(
       propEq('candidate', currentCandidate)
     )(tweets)}
@@ -35,41 +52,66 @@ const List = ({
   />
 )
 
-const Err = ({hasError}) => (
-  <Alert message={hasError} type="error" />
-)
+const noop = () => {}
+
+// TODO: refactor into a saga channel...
+let evtSource = null
+
+const setEvtSource = q => handler => {
+  evtSource = new EventSource(
+    `http://localhost:3000/live?track=${q}`
+  )
+
+  evtSource.addEventListener('tweet', handler)
+}
 
 const mapState = prop('tweet')
 
+const initalState = {isLive: F()}
+
+const stateHandlers = {
+  toggleLive: state => () =>
+    evolve({
+      isLive: not
+    })(state)
+}
+
 export default compose(
   connect(mapState, {request, requestAdd}),
+  withStateHandlers(initalState, stateHandlers),
   lifecycle({
     componentDidMount() {
-      const {
-        request,
-        requestAdd,
-        currentCandidate
-      } = this.props
+      this.props.request(this.props.currentCandidate)
+    },
+    componentDidUpdate(prevProps) {
+      // close source when toggling live off or on candidate change
+      evtSource && prevProps.isLive && !this.props.isLive
+        ? evtSource.close()
+        : noop
 
-      const evtSource = new EventSource(
-        `http://localhost:3000/live?track=${currentCandidate}`
-      )
+      // load all tweets when toggling candidates
+      prevProps.currentCandidate !==
+      this.props.currentCandidate
+        ? this.props.request(this.props.currentCandidate)
+        : noop
 
-      const handleTweetEvent = pipe(
+      const handleTweetEvt = pipe(
         prop('data'),
         JSON.parse,
-        tweet => requestAdd(currentCandidate, tweet)
+        tweet =>
+          this.props.requestAdd(
+            this.props.currentCandidate,
+            tweet
+          )
       )
 
-      evtSource.addEventListener('tweet', handleTweetEvent)
+      const setEvtSourceToCandidate = setEvtSource(
+        this.props.currentCandidate
+      )
 
-      request(currentCandidate)
-    },
-    componentDidUpdate(nextProps) {
-      this.props.currentCandidate !==
-      nextProps.currentCandidate
-        ? this.props.request(this.props.currentCandidate)
-        : null
+      this.props.isLive
+        ? setEvtSourceToCandidate(handleTweetEvt)
+        : noop
     }
   }),
   branch(prop('hasError'), renderComponent(Err))
